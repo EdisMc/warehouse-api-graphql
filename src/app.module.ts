@@ -13,7 +13,6 @@ import { AppService } from './app.service';
       autoSchemaFile: 'schema.gql',
       playground: true,
     }),
-    // ...
   ],
   controllers: [AppController],
   providers: [AppService, AppResolver],

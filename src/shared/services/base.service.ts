@@ -1,13 +1,13 @@
 import {
-  DeepPartial,
-  DeleteResult,
-  FindOptionsWhere,
-  Repository,
+	DeepPartial,
+	DeleteResult,
+	FindOptionsWhere,
+	Repository,
 } from 'typeorm';
 
 import { NotFoundException } from '@nestjs/common';
 
-import { BaseEntity } from '../entity/base.entity';
+import { BaseEntity } from '../entities/base.entity';
 
 export abstract class BaseService<T extends BaseEntity> {
   constructor(
