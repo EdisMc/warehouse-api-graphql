@@ -1,4 +1,4 @@
-import { PartnerType as PartnerTypeEnum } from 'src/shared/enums/partner-type.enum';
+import { PartnerTypeEnum } from 'src/shared/enums/partner-type.enum';
 import { BaseObjectType } from 'src/shared/types/base.type';
 import { z } from 'zod';
 

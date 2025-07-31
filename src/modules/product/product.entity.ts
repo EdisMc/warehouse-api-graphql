@@ -1,5 +1,5 @@
 import { BaseEntity } from 'src/shared/entities/base.entity';
-import { SupportType } from 'src/shared/enums/support-type.enum';
+import { SupportTypeEnum } from 'src/shared/enums/support-type.enum';
 import { Column, Entity } from 'typeorm';
 
 @Entity({ name: 'product' })
@@ -16,8 +16,8 @@ export class Product extends BaseEntity {
   @Column({ type: 'varchar', length: 100, unique: true })
   sku: string;
 
-  @Column({ name: 'prod_type', type: 'enum', enum: SupportType })
-  prodType: SupportType;
+  @Column({ name: 'prod_type', type: 'enum', enum: SupportTypeEnum })
+  prodType: SupportTypeEnum;
 
   @Column({ type: 'numeric', precision: 12, scale: 2 })
   price: number;

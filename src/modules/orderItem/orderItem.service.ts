@@ -6,6 +6,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { Order } from '../order/order.entity';
 import { OrderItem } from './orderItem.entity';
+import {
+	CreateOrderItemInput,
+	createOrderItemSchema,
+	UpdateOrderItemInput,
+	updateOrderItemSchema,
+} from './orderItem.types';
 
 @Injectable()
 export class OrderItemService extends BaseService<OrderItem> {
@@ -42,16 +48,20 @@ export class OrderItemService extends BaseService<OrderItem> {
     });
   }
 
-  async create(data: Partial<OrderItem>): Promise<OrderItem> {
+  async create(input: CreateOrderItemInput): Promise<OrderItem> {
+    const parsed = createOrderItemSchema.parse(input);
     const existing = await this.repo.findOne({
-      where: { productId: data.productId, orderId: data.orderId },
+      where: { productId: parsed.productId, orderId: parsed.orderId },
     });
     if (existing)
       throw new ConflictException(`Product already exists in this order`);
-    return super.create(data);
+    const orderItem = this.repo.create(parsed);
+    return this.repo.save(orderItem);
   }
 
-  async update(id: string, data: Partial<OrderItem>): Promise<OrderItem> {
-    return super.update(id, data);
+  async update(id: string, input: UpdateOrderItemInput): Promise<OrderItem> {
+    const parsed = updateOrderItemSchema.parse(input);
+    await this.repo.update(id, parsed);
+    return this.getById(id);
   }
 }

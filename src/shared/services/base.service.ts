@@ -22,20 +22,10 @@ export abstract class BaseService<T extends BaseEntity> {
   async getById(id: string): Promise<T> {
     const item = await this.repo.findOne({
       where: { id } as FindOptionsWhere<T>,
+      withDeleted: true, // <- това позволява да намериш и soft deleted записи
     });
     if (!item) throw new NotFoundException(`${this.entityName} not found`);
     return item;
-  }
-
-  async create(data: DeepPartial<T>): Promise<T> {
-    const entity = this.repo.create(data);
-    return this.repo.save(entity);
-  }
-
-  async update(id: string, data: Partial<T>): Promise<T> {
-    const item = await this.getById(id);
-    Object.assign(item, data);
-    return this.repo.save(item);
   }
 
   async softDelete(id: string): Promise<DeleteResult> {

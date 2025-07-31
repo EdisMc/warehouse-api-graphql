@@ -1,5 +1,3 @@
-import { Args, Mutation, Query } from '@nestjs/graphql';
-
 export abstract class BaseResolver<
   EntityType,
   CreateInputType,
@@ -7,34 +5,28 @@ export abstract class BaseResolver<
 > {
   constructor(protected readonly service: any) {}
 
-  @Query(() => [Object], { name: 'findAll' })
-  async findAll() {
+  async findAll(): Promise<EntityType[]> {
     return this.service.getAll();
   }
 
-  @Query(() => Object, { name: 'findOne', nullable: true })
-  async findOne(@Args('id') id: string) {
+  async findOne(id: string): Promise<EntityType | null> {
     return this.service.getById(id);
   }
 
-  @Mutation(() => Object, { name: 'create' })
-  async create(@Args('input') input: CreateInputType) {
+  async create(input: CreateInputType): Promise<EntityType> {
     return this.service.create(input);
   }
 
-  @Mutation(() => Object, { name: 'update' })
-  async update(@Args('id') id: string, @Args('input') input: UpdateInputType) {
+  async update(id: string, input: UpdateInputType): Promise<EntityType> {
     return this.service.update(id, input);
   }
 
-  @Mutation(() => Boolean, { name: 'softDelete' })
-  async softDelete(@Args('id') id: string) {
+  async softDelete(id: string): Promise<boolean> {
     await this.service.softDelete(id);
     return true;
   }
 
-  @Mutation(() => Boolean, { name: 'delete' })
-  async delete(@Args('id') id: string) {
+  async delete(id: string): Promise<boolean> {
     await this.service.delete(id);
     return true;
   }

@@ -6,6 +6,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { Order } from '../order/order.entity';
 import { Invoice } from './invoice.entity';
+import {
+	CreateInvoiceInput,
+	createInvoiceSchema,
+	UpdateInvoiceInput,
+	updateInvoiceSchema,
+} from './invoice.types';
 
 @Injectable()
 export class InvoiceService extends BaseService<Invoice> {
@@ -32,28 +38,35 @@ export class InvoiceService extends BaseService<Invoice> {
     });
   }
 
-  async create(data: Partial<Invoice>): Promise<Invoice> {
+  async create(input: CreateInvoiceInput): Promise<Invoice> {
+    const parsed = createInvoiceSchema.parse(input);
     const existing = await this.repo.findOne({
-      where: { invoiceNumber: data.invoiceNumber },
+      where: { invoiceNumber: parsed.invoiceNumber },
     });
     if (existing)
       throw new ConflictException(
-        `Invoice with number '${data.invoiceNumber}' already exists`,
+        `Invoice with number '${parsed.invoiceNumber}' already exists`,
       );
-    return super.create(data);
+    const invoice = this.repo.create(parsed);
+    return this.repo.save(invoice);
   }
 
-  async update(id: string, data: Partial<Invoice>): Promise<Invoice> {
+  async update(id: string, input: UpdateInvoiceInput): Promise<Invoice> {
+    const parsed = updateInvoiceSchema.parse(input);
     const invoice = await this.getById(id);
-    if (data.invoiceNumber && data.invoiceNumber !== invoice.invoiceNumber) {
+    if (
+      parsed.invoiceNumber &&
+      parsed.invoiceNumber !== invoice.invoiceNumber
+    ) {
       const existing = await this.repo.findOne({
-        where: { invoiceNumber: data.invoiceNumber },
+        where: { invoiceNumber: parsed.invoiceNumber },
       });
       if (existing)
         throw new ConflictException(
-          `Invoice with number '${data.invoiceNumber}' already exists`,
+          `Invoice with number '${parsed.invoiceNumber}' already exists`,
         );
     }
-    return super.update(id, data);
+    await this.repo.update(id, parsed);
+    return this.getById(id);
   }
 }

@@ -1,4 +1,4 @@
-import { UserRole } from 'src/shared/enums/user-role.enum';
+import { UserRoleEnum } from 'src/shared/enums/user-role.enum';
 import { BaseObjectType } from 'src/shared/types/base.type';
 import { z } from 'zod';
 
@@ -11,7 +11,11 @@ export const createUserSchema = z.object({
   name: z.string().min(2).max(64),
   email: z.email(),
   password: z.string().min(6).max(255),
-  role: z.enum([UserRole.OWNER, UserRole.OPERATOR, UserRole.VIEWER]),
+  role: z.enum([
+    UserRoleEnum.OWNER,
+    UserRoleEnum.OPERATOR,
+    UserRoleEnum.VIEWER,
+  ]),
 });
 
 export const updateUserSchema = createUserSchema.partial();
@@ -31,8 +35,8 @@ export class UserType extends BaseObjectType {
   @Field()
   email: string;
 
-  @Field(() => UserRole)
-  role: UserRole;
+  @Field(() => UserRoleEnum)
+  role: UserRoleEnum;
 
   @Field(() => CompanyType, { nullable: true })
   company?: CompanyType;
@@ -52,8 +56,8 @@ export class CreateUserInput {
   @Field()
   password: string;
 
-  @Field(() => UserRole)
-  role: UserRole;
+  @Field(() => UserRoleEnum)
+  role: UserRoleEnum;
 }
 
 @InputType()
@@ -70,6 +74,6 @@ export class UpdateUserInput {
   @Field({ nullable: true })
   password?: string;
 
-  @Field(() => UserRole, { nullable: true })
-  role?: UserRole;
+  @Field(() => UserRoleEnum, { nullable: true })
+  role?: UserRoleEnum;
 }

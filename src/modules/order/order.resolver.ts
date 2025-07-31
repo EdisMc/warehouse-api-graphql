@@ -1,6 +1,13 @@
 import { BaseResolver } from 'src/shared/resolvers/base.resolver';
 
-import { Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import {
+	Args,
+	Mutation,
+	Parent,
+	Query,
+	ResolveField,
+	Resolver,
+} from '@nestjs/graphql';
 
 import { CompanyService } from '../company/company.service';
 import { CompanyType } from '../company/company.types';
@@ -30,6 +37,41 @@ export class OrderResolver extends BaseResolver<
     private readonly invoiceService: InvoiceService,
   ) {
     super(service);
+  }
+
+  @Query(() => [OrderType])
+  async orders() {
+    return super.findAll();
+  }
+
+  @Query(() => OrderType, { nullable: true })
+  async order(@Args('id') id: string) {
+    return super.findOne(id);
+  }
+
+  @Mutation(() => OrderType)
+  async createOrder(
+    @Args('input', { type: () => CreateOrderInput }) input: CreateOrderInput,
+  ) {
+    return super.create(input);
+  }
+
+  @Mutation(() => OrderType)
+  async updateOrder(
+    @Args('id') id: string,
+    @Args('input', { type: () => UpdateOrderInput }) input: UpdateOrderInput,
+  ) {
+    return super.update(id, input);
+  }
+
+  @Mutation(() => Boolean)
+  async softDeleteOrder(@Args('id') id: string) {
+    return super.softDelete(id);
+  }
+
+  @Mutation(() => Boolean)
+  async deleteOrder(@Args('id') id: string) {
+    return super.delete(id);
   }
 
   @ResolveField(() => CompanyType, { nullable: true })

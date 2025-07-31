@@ -2,6 +2,309 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type PartnerType {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  modifiedById: String
+  companyId: String!
+  name: String!
+  type: PartnerTypeEnum!
+  company: CompanyType
+  orders: [OrderType!]!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+enum PartnerTypeEnum {
+  SUPPLIER
+  CUSTOMER
+}
+
+type OrderItemType {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  modifiedById: String
+  productId: String!
+  orderId: String!
+  quantity: Float!
+  priceAtOrder: Float!
+  product: ProductType
+  order: OrderType
+}
+
+type WarehouseType {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  modifiedById: String
+  companyId: String!
+  name: String!
+  location: String!
+  supportType: SupportTypeEnum!
+  company: CompanyType
+  orders: [OrderType!]!
+  products: [ProductType!]!
+}
+
+enum SupportTypeEnum {
+  SOLID
+  LIQUID
+}
+
+type ProductType {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  modifiedById: String
+  companyId: String!
+  warehouseId: String!
+  name: String!
+  sku: String!
+  prodType: SupportTypeEnum!
+  price: Float!
+  company: CompanyType
+  warehouse: WarehouseType
+  orderItems: [OrderItemType!]!
+}
+
+type UserType {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  modifiedById: String
+  companyId: String!
+  name: String!
+  email: String!
+  role: UserRoleEnum!
+  company: CompanyType
+}
+
+enum UserRoleEnum {
+  OWNER
+  OPERATOR
+  VIEWER
+}
+
+type CompanyType {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  modifiedById: String
+  name: String!
+  users: [UserType!]!
+  products: [ProductType!]!
+  warehouses: [WarehouseType!]!
+  partners: [PartnerType!]!
+  orders: [OrderType!]!
+}
+
+type InvoiceType {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  modifiedById: String
+  orderId: String!
+  invoiceNumber: String!
+  issueDate: DateTime!
+  order: OrderType
+}
+
+type OrderType {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  modifiedById: String
+  companyId: String!
+  warehouseId: String!
+  partnerId: String!
+  date: DateTime!
+  type: OrderTypeEnum!
+  company: CompanyType
+  partner: PartnerType
+  warehouse: WarehouseType
+  orderItems: [OrderItemType!]!
+  invoice: InvoiceType
+}
+
+enum OrderTypeEnum {
+  DELIVERY
+  SHIPMENT
+}
+
 type Query {
   hello: String!
+  companies: [CompanyType!]!
+  company(id: String!): CompanyType
+  users: [UserType!]!
+  user(id: String!): UserType
+  products: [ProductType!]!
+  product(id: String!): ProductType
+  warehouses: [WarehouseType!]!
+  warehouse(id: String!): WarehouseType
+  partners: [PartnerType!]!
+  partner(id: String!): PartnerType
+  orders: [OrderType!]!
+  order(id: String!): OrderType
+  orderItems: [OrderItemType!]!
+  orderItem(id: String!): OrderItemType
+  invoices: [InvoiceType!]!
+  invoice(id: String!): InvoiceType
+}
+
+type Mutation {
+  createCompany(input: CreateCompanyInput!): CompanyType!
+  updateCompany(id: String!, input: UpdateCompanyInput!): CompanyType!
+  softDeleteCompany(id: String!): Boolean!
+  deleteCompany(id: String!): Boolean!
+  createUser(input: CreateUserInput!): UserType!
+  updateUser(id: String!, input: UpdateUserInput!): UserType!
+  softDeleteUser(id: String!): Boolean!
+  deleteUser(id: String!): Boolean!
+  createProduct(input: CreateProductInput!): ProductType!
+  updateProduct(id: String!, input: UpdateProductInput!): ProductType!
+  softDeleteProduct(id: String!): Boolean!
+  deleteProduct(id: String!): Boolean!
+  createWarehouse(input: CreateWarehouseInput!): WarehouseType!
+  updateWarehouse(id: String!, input: UpdateWarehouseInput!): WarehouseType!
+  softDeleteWarehouse(id: String!): Boolean!
+  deleteWarehouse(id: String!): Boolean!
+  createPartner(input: CreatePartnerInput!): PartnerType!
+  updatePartner(id: String!, input: UpdatePartnerInput!): PartnerType!
+  softDeletePartner(id: String!): Boolean!
+  deletePartner(id: String!): Boolean!
+  createOrder(input: CreateOrderInput!): OrderType!
+  updateOrder(id: String!, input: UpdateOrderInput!): OrderType!
+  softDeleteOrder(id: String!): Boolean!
+  deleteOrder(id: String!): Boolean!
+  createOrderItem(input: CreateOrderItemInput!): OrderItemType!
+  updateOrderItem(id: String!, input: UpdateOrderItemInput!): OrderItemType!
+  softDeleteOrderItem(id: String!): Boolean!
+  deleteOrderItem(id: String!): Boolean!
+  createInvoice(input: CreateInvoiceInput!): InvoiceType!
+  updateInvoice(id: String!, input: UpdateInvoiceInput!): InvoiceType!
+  softDeleteInvoice(id: String!): Boolean!
+  deleteInvoice(id: String!): Boolean!
+}
+
+input CreateCompanyInput {
+  name: String!
+}
+
+input UpdateCompanyInput {
+  name: String
+}
+
+input CreateUserInput {
+  companyId: String!
+  name: String!
+  email: String!
+  password: String!
+  role: UserRoleEnum!
+}
+
+input UpdateUserInput {
+  companyId: String
+  name: String
+  email: String
+  password: String
+  role: UserRoleEnum
+}
+
+input CreateProductInput {
+  companyId: String!
+  warehouseId: String!
+  name: String!
+  sku: String!
+  prodType: SupportTypeEnum!
+  price: Float!
+}
+
+input UpdateProductInput {
+  companyId: String
+  warehouseId: String
+  name: String
+  sku: String
+  prodType: SupportTypeEnum
+  price: Float
+}
+
+input CreateWarehouseInput {
+  companyId: String!
+  name: String!
+  location: String!
+  supportType: SupportTypeEnum!
+}
+
+input UpdateWarehouseInput {
+  companyId: String
+  name: String
+  location: String
+  supportType: SupportTypeEnum
+}
+
+input CreatePartnerInput {
+  companyId: String!
+  name: String!
+  type: PartnerTypeEnum!
+}
+
+input UpdatePartnerInput {
+  companyId: String
+  name: String
+  type: PartnerTypeEnum
+}
+
+input CreateOrderInput {
+  companyId: String!
+  warehouseId: String!
+  partnerId: String!
+  date: DateTime!
+  type: OrderTypeEnum!
+}
+
+input UpdateOrderInput {
+  companyId: String
+  warehouseId: String
+  partnerId: String
+  date: DateTime
+  type: OrderTypeEnum
+}
+
+input CreateOrderItemInput {
+  productId: String!
+  orderId: String!
+  quantity: Float!
+  priceAtOrder: Float!
+}
+
+input UpdateOrderItemInput {
+  productId: String
+  orderId: String
+  quantity: Float
+  priceAtOrder: Float
+}
+
+input CreateInvoiceInput {
+  orderId: String!
+  invoiceNumber: String!
+  issueDate: DateTime
+}
+
+input UpdateInvoiceInput {
+  orderId: String
+  invoiceNumber: String
+  issueDate: DateTime
 }

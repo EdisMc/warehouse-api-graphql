@@ -5,6 +5,12 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Company } from './company.entity';
+import {
+	CreateCompanyInput,
+	createCompanySchema,
+	UpdateCompanyInput,
+	updateCompanySchema,
+} from './company.types';
 
 @Injectable()
 export class CompanyService extends BaseService<Company> {
@@ -16,10 +22,28 @@ export class CompanyService extends BaseService<Company> {
     return this.repo.findOne({ where: { id } });
   }
 
-  async create(data: Partial<Company>): Promise<Company> {
-    const existing = await this.repo.findOne({ where: { name: data.name } });
+  async create(input: CreateCompanyInput): Promise<Company> {
+    const parsed = createCompanySchema.parse(input);
+    const existing = await this.repo.findOne({ where: { name: parsed.name } });
     if (existing)
-      throw new ConflictException(`Company with name '${data.name}' exists!`);
-    return super.create(data);
+      throw new ConflictException(`Company with name '${parsed.name}' exists!`);
+    const company = this.repo.create(parsed);
+    return this.repo.save(company);
+  }
+
+  async update(id: string, input: UpdateCompanyInput): Promise<Company> {
+    const parsed = updateCompanySchema.parse(input);
+    const company = await this.getById(id);
+    if (parsed.name && parsed.name !== company.name) {
+      const existing = await this.repo.findOne({
+        where: { name: parsed.name },
+      });
+      if (existing)
+        throw new ConflictException(
+          `Company with name '${parsed.name}' exists!`,
+        );
+    }
+    await this.repo.update(id, parsed);
+    return this.getById(id);
   }
 }

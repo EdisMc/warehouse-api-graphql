@@ -1,5 +1,5 @@
 import { BaseEntity } from 'src/shared/entities/base.entity';
-import { OrderType } from 'src/shared/enums/order-type.enum';
+import { OrderTypeEnum } from 'src/shared/enums/order-type.enum';
 import { Column, Entity } from 'typeorm';
 
 @Entity({ name: 'order' })
@@ -16,6 +16,6 @@ export class Order extends BaseEntity {
   @Column({ type: 'timestamptz', default: () => 'now()' })
   date: Date;
 
-  @Column({ name: 'type', type: 'enum', enum: OrderType })
-  type: OrderType;
+  @Column({ name: 'type', type: 'enum', enum: OrderTypeEnum })
+  type: OrderTypeEnum;
 }

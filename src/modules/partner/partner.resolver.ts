@@ -1,6 +1,13 @@
 import { BaseResolver } from 'src/shared/resolvers/base.resolver';
 
-import { Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import {
+	Args,
+	Mutation,
+	Parent,
+	Query,
+	ResolveField,
+	Resolver,
+} from '@nestjs/graphql';
 
 import { CompanyService } from '../company/company.service';
 import { CompanyType } from '../company/company.types';
@@ -25,6 +32,43 @@ export class PartnerResolver extends BaseResolver<
     private readonly orderService: OrderService,
   ) {
     super(service);
+  }
+
+  @Query(() => [PartnerType])
+  async partners() {
+    return super.findAll();
+  }
+
+  @Query(() => PartnerType, { nullable: true })
+  async partner(@Args('id') id: string) {
+    return super.findOne(id);
+  }
+
+  @Mutation(() => PartnerType)
+  async createPartner(
+    @Args('input', { type: () => CreatePartnerInput })
+    input: CreatePartnerInput,
+  ) {
+    return super.create(input);
+  }
+
+  @Mutation(() => PartnerType)
+  async updatePartner(
+    @Args('id') id: string,
+    @Args('input', { type: () => UpdatePartnerInput })
+    input: UpdatePartnerInput,
+  ) {
+    return super.update(id, input);
+  }
+
+  @Mutation(() => Boolean)
+  async softDeletePartner(@Args('id') id: string) {
+    return super.softDelete(id);
+  }
+
+  @Mutation(() => Boolean)
+  async deletePartner(@Args('id') id: string) {
+    return super.delete(id);
   }
 
   @ResolveField(() => CompanyType, { nullable: true })

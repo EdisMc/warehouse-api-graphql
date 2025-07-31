@@ -1,4 +1,4 @@
-import { SupportType } from 'src/shared/enums/support-type.enum';
+import { SupportTypeEnum } from 'src/shared/enums/support-type.enum';
 import { BaseObjectType } from 'src/shared/types/base.type';
 import { z } from 'zod';
 
@@ -13,7 +13,7 @@ export const createProductSchema = z.object({
   warehouseId: z.uuid(),
   name: z.string().min(2).max(64),
   sku: z.string().min(2).max(100),
-  prodType: z.enum([SupportType.SOLID, SupportType.LIQUID]),
+  prodType: z.enum([SupportTypeEnum.SOLID, SupportTypeEnum.LIQUID]),
   price: z.number().nonnegative(),
 });
 
@@ -36,8 +36,8 @@ export class ProductType extends BaseObjectType {
   @Field()
   sku: string;
 
-  @Field(() => SupportType)
-  prodType: SupportType;
+  @Field(() => SupportTypeEnum)
+  prodType: SupportTypeEnum;
 
   @Field()
   price: number;
@@ -66,8 +66,8 @@ export class CreateProductInput {
   @Field()
   sku: string;
 
-  @Field(() => SupportType)
-  prodType: SupportType;
+  @Field(() => SupportTypeEnum)
+  prodType: SupportTypeEnum;
 
   @Field()
   price: number;
@@ -87,8 +87,8 @@ export class UpdateProductInput {
   @Field({ nullable: true })
   sku?: string;
 
-  @Field(() => SupportType, { nullable: true })
-  prodType?: SupportType;
+  @Field(() => SupportTypeEnum, { nullable: true })
+  prodType?: SupportTypeEnum;
 
   @Field({ nullable: true })
   price?: number;

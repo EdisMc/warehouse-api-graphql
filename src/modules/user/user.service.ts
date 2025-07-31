@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcrypt';
 import { BaseService } from 'src/shared/services/base.service';
 import { Repository } from 'typeorm';
 
@@ -5,6 +6,12 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { User } from './user.entity';
+import {
+	CreateUserInput,
+	createUserSchema,
+	UpdateUserInput,
+	updateUserSchema,
+} from './user.types';
 
 @Injectable()
 export class UserService extends BaseService<User> {
@@ -35,26 +42,35 @@ export class UserService extends BaseService<User> {
     });
   }
 
-  async create(data: Partial<User>): Promise<User> {
-    const existing = await this.repo.findOne({ where: { email: data.email } });
-    if (existing)
+  async create(input: CreateUserInput): Promise<User> {
+    const parsed = createUserSchema.parse(input);
+    const existing = await this.repo.findOne({
+      where: { email: parsed.email },
+    });
+    if (existing) {
       throw new ConflictException(
-        `User with email '${data.email}' already exists`,
+        `User with email '${parsed.email}' already exists`,
       );
-    return super.create(data);
+    }
+    parsed.password = await bcrypt.hash(parsed.password, 10);
+    const user = this.repo.create(parsed);
+    return this.repo.save(user);
   }
 
-  async update(id: string, data: Partial<User>): Promise<User> {
+  async update(id: string, input: UpdateUserInput): Promise<User> {
+    const parsed = updateUserSchema.parse(input);
     const user = await this.getById(id);
-    if (data.email && data.email !== user.email) {
+    if (parsed.email && parsed.email !== user.email) {
       const existing = await this.repo.findOne({
-        where: { email: data.email },
+        where: { email: parsed.email },
       });
-      if (existing)
+      if (existing && existing.id !== id) {
         throw new ConflictException(
-          `User with email '${data.email}' already exists`,
+          `User with email '${parsed.email}' already exists`,
         );
+      }
     }
-    return super.update(id, data);
+    await this.repo.update(id, parsed);
+    return this.getById(id);
   }
 }

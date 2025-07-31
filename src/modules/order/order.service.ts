@@ -5,6 +5,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Order } from './order.entity';
+import {
+	CreateOrderInput,
+	createOrderSchema,
+	UpdateOrderInput,
+	updateOrderSchema,
+} from './order.types';
 
 @Injectable()
 export class OrderService extends BaseService<Order> {
@@ -44,11 +50,15 @@ export class OrderService extends BaseService<Order> {
     return this.repo.findOne({ where: { id } });
   }
 
-  async create(data: Partial<Order>): Promise<Order> {
-    return super.create(data);
+  async create(input: CreateOrderInput): Promise<Order> {
+    const parsed = createOrderSchema.parse(input);
+    const order = this.repo.create(parsed);
+    return this.repo.save(order);
   }
 
-  async update(id: string, data: Partial<Order>): Promise<Order> {
-    return super.update(id, data);
+  async update(id: string, input: UpdateOrderInput): Promise<Order> {
+    const parsed = updateOrderSchema.parse(input);
+    await this.repo.update(id, parsed);
+    return this.getById(id);
   }
 }

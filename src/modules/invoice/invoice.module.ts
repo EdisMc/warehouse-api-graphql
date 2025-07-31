@@ -1,12 +1,13 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { OrderModule } from '../order/order.module';
 import { Invoice } from './invoice.entity';
 import { InvoiceResolver } from './invoice.resolver';
 import { InvoiceService } from './invoice.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Invoice])],
+  imports: [TypeOrmModule.forFeature([Invoice]), forwardRef(() => OrderModule)],
   providers: [InvoiceService, InvoiceResolver],
   exports: [InvoiceService],
 })

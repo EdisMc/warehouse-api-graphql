@@ -5,6 +5,12 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Partner } from './partner.entity';
+import {
+	CreatePartnerInput,
+	createPartnerSchema,
+	UpdatePartnerInput,
+	updatePartnerSchema,
+} from './partner.types';
 
 @Injectable()
 export class PartnerService extends BaseService<Partner> {
@@ -30,28 +36,32 @@ export class PartnerService extends BaseService<Partner> {
     });
   }
 
-  async create(data: Partial<Partner>): Promise<Partner> {
+  async create(input: CreatePartnerInput): Promise<Partner> {
+    const parsed = createPartnerSchema.parse(input);
     const existing = await this.repo.findOne({
-      where: { name: data.name, companyId: data.companyId },
+      where: { name: parsed.name, companyId: parsed.companyId },
     });
     if (existing)
       throw new ConflictException(
-        `Partner with name '${data.name}' already exists for this company`,
+        `Partner with name '${parsed.name}' already exists for this company`,
       );
-    return super.create(data);
+    const partner = this.repo.create(parsed);
+    return this.repo.save(partner);
   }
 
-  async update(id: string, data: Partial<Partner>): Promise<Partner> {
+  async update(id: string, input: UpdatePartnerInput): Promise<Partner> {
+    const parsed = updatePartnerSchema.parse(input);
     const partner = await this.getById(id);
-    if (data.name && data.name !== partner.name) {
+    if (parsed.name && parsed.name !== partner.name) {
       const existing = await this.repo.findOne({
-        where: { name: data.name, companyId: partner.companyId },
+        where: { name: parsed.name, companyId: partner.companyId },
       });
       if (existing)
         throw new ConflictException(
-          `Partner with name '${data.name}' already exists for this company`,
+          `Partner with name '${parsed.name}' already exists for this company`,
         );
     }
-    return super.update(id, data);
+    await this.repo.update(id, parsed);
+    return this.getById(id);
   }
 }

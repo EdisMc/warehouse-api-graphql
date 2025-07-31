@@ -1,4 +1,4 @@
-import { SupportType } from 'src/shared/enums/support-type.enum';
+import { SupportTypeEnum } from 'src/shared/enums/support-type.enum';
 import { BaseObjectType } from 'src/shared/types/base.type';
 import { z } from 'zod';
 
@@ -12,7 +12,7 @@ export const createWarehouseSchema = z.object({
   companyId: z.uuid(),
   name: z.string().min(2).max(64),
   location: z.string().min(2).max(128),
-  supportType: z.enum([SupportType.SOLID, SupportType.LIQUID]),
+  supportType: z.enum([SupportTypeEnum.SOLID, SupportTypeEnum.LIQUID]),
 });
 
 export const updateWarehouseSchema = createWarehouseSchema.partial();
@@ -31,8 +31,8 @@ export class WarehouseType extends BaseObjectType {
   @Field()
   location: string;
 
-  @Field(() => SupportType)
-  supportType: SupportType;
+  @Field(() => SupportTypeEnum)
+  supportType: SupportTypeEnum;
 
   @Field(() => CompanyType, { nullable: true })
   company?: CompanyType;
@@ -55,8 +55,8 @@ export class CreateWarehouseInput {
   @Field()
   location: string;
 
-  @Field(() => SupportType)
-  supportType: SupportType;
+  @Field(() => SupportTypeEnum)
+  supportType: SupportTypeEnum;
 }
 
 @InputType()
@@ -70,6 +70,6 @@ export class UpdateWarehouseInput {
   @Field({ nullable: true })
   location?: string;
 
-  @Field(() => SupportType, { nullable: true })
-  supportType?: SupportType;
+  @Field(() => SupportTypeEnum, { nullable: true })
+  supportType?: SupportTypeEnum;
 }

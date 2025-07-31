@@ -1,4 +1,4 @@
-import { OrderType as OrderTypeEnum } from 'src/shared/enums/order-type.enum';
+import { OrderTypeEnum } from 'src/shared/enums/order-type.enum';
 import { BaseObjectType } from 'src/shared/types/base.type';
 import { z } from 'zod';
 

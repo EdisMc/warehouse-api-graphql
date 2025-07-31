@@ -5,6 +5,12 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Warehouse } from './warehouse.entity';
+import {
+	CreateWarehouseInput,
+	createWarehouseSchema,
+	UpdateWarehouseInput,
+	updateWarehouseSchema,
+} from './warehouse.types';
 
 @Injectable()
 export class WarehouseService extends BaseService<Warehouse> {
@@ -30,28 +36,32 @@ export class WarehouseService extends BaseService<Warehouse> {
     return this.repo.findOne({ where: { id } });
   }
 
-  async create(data: Partial<Warehouse>): Promise<Warehouse> {
+  async create(input: CreateWarehouseInput): Promise<Warehouse> {
+    const parsed = createWarehouseSchema.parse(input);
     const existing = await this.repo.findOne({
-      where: { name: data.name, companyId: data.companyId },
+      where: { name: parsed.name, companyId: parsed.companyId },
     });
     if (existing)
       throw new ConflictException(
-        `Warehouse with name '${data.name}' already exists for this company`,
+        `Warehouse with name '${parsed.name}' already exists for this company`,
       );
-    return super.create(data);
+    const warehouse = this.repo.create(parsed);
+    return this.repo.save(warehouse);
   }
 
-  async update(id: string, data: Partial<Warehouse>): Promise<Warehouse> {
+  async update(id: string, input: UpdateWarehouseInput): Promise<Warehouse> {
+    const parsed = updateWarehouseSchema.parse(input);
     const warehouse = await this.getById(id);
-    if (data.name && data.name !== warehouse.name) {
+    if (parsed.name && parsed.name !== warehouse.name) {
       const existing = await this.repo.findOne({
-        where: { name: data.name, companyId: warehouse.companyId },
+        where: { name: parsed.name, companyId: warehouse.companyId },
       });
       if (existing)
         throw new ConflictException(
-          `Warehouse with name '${data.name}' already exists for this company`,
+          `Warehouse with name '${parsed.name}' already exists for this company`,
         );
     }
-    return super.update(id, data);
+    await this.repo.update(id, parsed);
+    return this.getById(id);
   }
 }
