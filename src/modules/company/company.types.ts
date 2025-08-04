@@ -16,7 +16,7 @@ export const createCompanySchema = z.object({
 export const updateCompanySchema = createCompanySchema.partial();
 
 export type CreateCompany = z.infer<typeof createCompanySchema>;
-export type UpdateCompany = z.infer<typeof updateCompanySchema>; // zod shemite - dolu v tipa -  @objecttype - da implementira (z.typeof<>)
+export type UpdateCompany = z.infer<typeof updateCompanySchema>;
 
 @ObjectType()
 export class CompanyType extends BaseObjectType {

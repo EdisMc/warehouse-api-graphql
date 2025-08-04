@@ -22,6 +22,10 @@ export class CompanyService extends BaseService<Company> {
     return this.repo.findOne({ where: { id } });
   }
 
+  async findByName(name: string): Promise<Company | null> {
+    return this.repo.findOne({ where: { name } });
+  }
+
   async create(input: CreateCompanyInput): Promise<Company> {
     const parsed = createCompanySchema.parse(input);
     const existing = await this.repo.findOne({ where: { name: parsed.name } });

@@ -1,5 +1,11 @@
+import { CurrentCompany } from 'src/decorators/current-company.decorator';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { Roles } from 'src/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
 import { BaseResolver } from 'src/shared/resolvers/base.resolver';
 
+import { UseGuards } from '@nestjs/common';
 import {
 	Args,
 	Mutation,
@@ -13,6 +19,7 @@ import { CompanyService } from '../company/company.service';
 import { CompanyType } from '../company/company.types';
 import { OrderItemService } from '../orderItem/orderItem.service';
 import { OrderItemType } from '../orderItem/orderItem.types';
+import { UserType } from '../user/user.types';
 import { WarehouseService } from '../warehouse/warehouse.service';
 import { WarehouseType } from '../warehouse/warehouse.types';
 import { ProductService } from './product.service';
@@ -38,40 +45,71 @@ export class ProductResolver extends BaseResolver<
   }
 
   @Query(() => [ProductType])
-  async products() {
-    return super.findAll();
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR', 'VIEWER')
+  async products(@CurrentCompany() companyId: string) {
+    return this.service.findAllByCompany(companyId);
   }
 
   @Query(() => ProductType, { nullable: true })
-  async product(@Args('id') id: string) {
-    return super.findOne(id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR', 'VIEWER')
+  async product(@Args('id') id: string, @CurrentCompany() companyId: string) {
+    const product = await super.findOne(id);
+    return product && product.companyId === companyId ? product : null;
   }
 
   @Mutation(() => ProductType)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR')
   async createProduct(
     @Args('input', { type: () => CreateProductInput })
     input: CreateProductInput,
+    @CurrentUser() user: UserType,
+    @CurrentCompany() companyId: string,
   ) {
-    return super.create(input);
+    const inputWithCompany = { ...input, companyId };
+    return this.service.create(inputWithCompany, user.id);
   }
 
   @Mutation(() => ProductType)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR')
   async updateProduct(
     @Args('id') id: string,
     @Args('input', { type: () => UpdateProductInput })
     input: UpdateProductInput,
+    @CurrentCompany() companyId: string,
   ) {
-    return super.update(id, input);
+    return super.update(id, { ...input, companyId });
   }
 
   @Mutation(() => Boolean)
-  async softDeleteProduct(@Args('id') id: string) {
-    return super.softDelete(id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
+  async softDeleteProduct(
+    @Args('id') id: string,
+    @CurrentCompany() companyId: string,
+  ) {
+    const product = await super.findOne(id);
+    if (!product || product.companyId !== companyId)
+      throw new Error('Forbidden');
+    await super.softDelete(id);
+    return true;
   }
 
   @Mutation(() => Boolean)
-  async deleteProduct(@Args('id') id: string) {
-    return super.delete(id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
+  async deleteProduct(
+    @Args('id') id: string,
+    @CurrentCompany() companyId: string,
+  ) {
+    const product = await super.findOne(id);
+    if (!product || product.companyId !== companyId)
+      throw new Error('Forbidden');
+    await super.delete(id);
+    return true;
   }
 
   @ResolveField(() => CompanyType, { nullable: true })

@@ -22,7 +22,7 @@ export abstract class BaseService<T extends BaseEntity> {
   async getById(id: string): Promise<T> {
     const item = await this.repo.findOne({
       where: { id } as FindOptionsWhere<T>,
-      withDeleted: true, // <- това позволява да намериш и soft deleted записи
+      withDeleted: true,
     });
     if (!item) throw new NotFoundException(`${this.entityName} not found`);
     return item;

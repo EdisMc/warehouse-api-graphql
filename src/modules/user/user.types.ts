@@ -21,8 +21,7 @@ export const createUserSchema = z.object({
 export const updateUserSchema = createUserSchema.partial();
 
 export type CreateUser = z.infer<typeof createUserSchema>;
-export type UpdateUser = z.infer<typeof updateUserSchema>; //mutacii za user - reset password, update user !!! , total na invoice ili order
-//available stock v warehouses ?
+export type UpdateUser = z.infer<typeof updateUserSchema>;
 
 @ObjectType()
 export class UserType extends BaseObjectType {

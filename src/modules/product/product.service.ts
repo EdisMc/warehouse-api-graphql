@@ -67,7 +67,7 @@ export class ProductService extends BaseService<Product> {
     });
   }
 
-  async create(input: CreateProductInput): Promise<Product> {
+  async create(input: CreateProductInput, userId: string): Promise<Product> {
     const parsed = createProductSchema.parse(input);
     const existing = await this.repo.findOne({
       where: { sku: parsed.sku, companyId: parsed.companyId },
@@ -76,7 +76,7 @@ export class ProductService extends BaseService<Product> {
       throw new ConflictException(
         `Product with SKU '${parsed.sku}' already exists for this company`,
       );
-    const product = this.repo.create(parsed);
+    const product = this.repo.create({ ...parsed, modifiedById: userId });
     return this.repo.save(product);
   }
 

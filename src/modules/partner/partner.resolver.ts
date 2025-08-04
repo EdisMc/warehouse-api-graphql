@@ -1,5 +1,10 @@
+import { CurrentCompany } from 'src/decorators/current-company.decorator';
+import { Roles } from 'src/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
 import { BaseResolver } from 'src/shared/resolvers/base.resolver';
 
+import { UseGuards } from '@nestjs/common';
 import {
 	Args,
 	Mutation,
@@ -35,40 +40,69 @@ export class PartnerResolver extends BaseResolver<
   }
 
   @Query(() => [PartnerType])
-  async partners() {
-    return super.findAll();
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR', 'VIEWER')
+  async partners(@CurrentCompany() companyId: string) {
+    return this.service.findAllByCompany(companyId);
   }
 
   @Query(() => PartnerType, { nullable: true })
-  async partner(@Args('id') id: string) {
-    return super.findOne(id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR', 'VIEWER')
+  async partner(@Args('id') id: string, @CurrentCompany() companyId: string) {
+    const partner = await super.findOne(id);
+    return partner && partner.companyId === companyId ? partner : null;
   }
 
   @Mutation(() => PartnerType)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR')
   async createPartner(
     @Args('input', { type: () => CreatePartnerInput })
     input: CreatePartnerInput,
+    @CurrentCompany() companyId: string,
   ) {
-    return super.create(input);
+    return super.create({ ...input, companyId });
   }
 
   @Mutation(() => PartnerType)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR')
   async updatePartner(
     @Args('id') id: string,
     @Args('input', { type: () => UpdatePartnerInput })
     input: UpdatePartnerInput,
+    @CurrentCompany() companyId: string,
   ) {
-    return super.update(id, input);
+    return super.update(id, { ...input, companyId });
   }
 
   @Mutation(() => Boolean)
-  async softDeletePartner(@Args('id') id: string) {
-    return super.softDelete(id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
+  async softDeletePartner(
+    @Args('id') id: string,
+    @CurrentCompany() companyId: string,
+  ) {
+    const partner = await super.findOne(id);
+    if (!partner || partner.companyId !== companyId)
+      throw new Error('Forbidden');
+    await super.softDelete(id);
+    return true;
   }
 
   @Mutation(() => Boolean)
-  async deletePartner(@Args('id') id: string) {
-    return super.delete(id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
+  async deletePartner(
+    @Args('id') id: string,
+    @CurrentCompany() companyId: string,
+  ) {
+    const partner = await super.findOne(id);
+    if (!partner || partner.companyId !== companyId)
+      throw new Error('Forbidden');
+    await super.delete(id);
+    return true;
   }
 
   @ResolveField(() => CompanyType, { nullable: true })

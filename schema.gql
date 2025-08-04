@@ -2,6 +2,26 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type BestsellingProductType {
+  productId: String!
+  productName: String!
+  totalSold: String!
+}
+
+type TopClientType {
+  partnerId: String!
+  partnerName: String!
+  ordersCount: String!
+}
+
+type HighestStockProductType {
+  warehouseId: String
+  warehouseName: String
+  productId: String
+  productName: String
+  totalQuantity: String
+}
+
 type PartnerType {
   id: ID!
   createdAt: DateTime!
@@ -107,6 +127,7 @@ type CompanyType {
   warehouses: [WarehouseType!]!
   partners: [PartnerType!]!
   orders: [OrderType!]!
+  highestStockProductPerWarehouse: [HighestStockProductType!]!
 }
 
 type InvoiceType {
@@ -145,11 +166,10 @@ enum OrderTypeEnum {
 }
 
 type Query {
-  hello: String!
-  companies: [CompanyType!]!
-  company(id: String!): CompanyType
   users: [UserType!]!
   user(id: String!): UserType
+  companies: [CompanyType!]!
+  myCompany: CompanyType
   products: [ProductType!]!
   product(id: String!): ProductType
   warehouses: [WarehouseType!]!
@@ -158,6 +178,9 @@ type Query {
   partner(id: String!): PartnerType
   orders: [OrderType!]!
   order(id: String!): OrderType
+  bestsellingProducts: [BestsellingProductType!]!
+  topClient: TopClientType
+  highestStockProductPerWarehouse: [HighestStockProductType!]!
   orderItems: [OrderItemType!]!
   orderItem(id: String!): OrderItemType
   invoices: [InvoiceType!]!
@@ -165,14 +188,15 @@ type Query {
 }
 
 type Mutation {
-  createCompany(input: CreateCompanyInput!): CompanyType!
-  updateCompany(id: String!, input: UpdateCompanyInput!): CompanyType!
-  softDeleteCompany(id: String!): Boolean!
-  deleteCompany(id: String!): Boolean!
+  login(input: LoginInput!): String!
+  register(input: RegisterInput!): String!
   createUser(input: CreateUserInput!): UserType!
   updateUser(id: String!, input: UpdateUserInput!): UserType!
   softDeleteUser(id: String!): Boolean!
   deleteUser(id: String!): Boolean!
+  updateCompany(input: UpdateCompanyInput!): CompanyType!
+  softDeleteCompany: Boolean!
+  deleteCompany: Boolean!
   createProduct(input: CreateProductInput!): ProductType!
   updateProduct(id: String!, input: UpdateProductInput!): ProductType!
   softDeleteProduct(id: String!): Boolean!
@@ -199,12 +223,16 @@ type Mutation {
   deleteInvoice(id: String!): Boolean!
 }
 
-input CreateCompanyInput {
-  name: String!
+input LoginInput {
+  email: String!
+  password: String!
 }
 
-input UpdateCompanyInput {
-  name: String
+input RegisterInput {
+  companyName: String!
+  email: String!
+  password: String!
+  name: String!
 }
 
 input CreateUserInput {
@@ -221,6 +249,10 @@ input UpdateUserInput {
   email: String
   password: String
   role: UserRoleEnum
+}
+
+input UpdateCompanyInput {
+  name: String
 }
 
 input CreateProductInput {

@@ -1,5 +1,10 @@
+import { CurrentCompany } from 'src/decorators/current-company.decorator';
+import { Roles } from 'src/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
 import { BaseResolver } from 'src/shared/resolvers/base.resolver';
 
+import { UseGuards } from '@nestjs/common';
 import {
 	Args,
 	Mutation,
@@ -40,36 +45,51 @@ export class OrderResolver extends BaseResolver<
   }
 
   @Query(() => [OrderType])
-  async orders() {
-    return super.findAll();
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR', 'VIEWER')
+  async orders(@CurrentCompany() companyId: string) {
+    return this.service.getAllByCompany(companyId);
   }
 
   @Query(() => OrderType, { nullable: true })
-  async order(@Args('id') id: string) {
-    return super.findOne(id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR', 'VIEWER')
+  async order(@Args('id') id: string, @CurrentCompany() companyId: string) {
+    const order = await super.findOne(id);
+    return order && order.companyId === companyId ? order : null;
   }
 
   @Mutation(() => OrderType)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR')
   async createOrder(
     @Args('input', { type: () => CreateOrderInput }) input: CreateOrderInput,
+    @CurrentCompany() companyId: string,
   ) {
-    return super.create(input);
+    return this.service.create({ ...input, companyId });
   }
 
   @Mutation(() => OrderType)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR')
   async updateOrder(
     @Args('id') id: string,
     @Args('input', { type: () => UpdateOrderInput }) input: UpdateOrderInput,
+    @CurrentCompany() companyId: string,
   ) {
-    return super.update(id, input);
+    return this.service.update(id, { ...input, companyId });
   }
 
   @Mutation(() => Boolean)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
   async softDeleteOrder(@Args('id') id: string) {
     return super.softDelete(id);
   }
 
   @Mutation(() => Boolean)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
   async deleteOrder(@Args('id') id: string) {
     return super.delete(id);
   }

@@ -1,3 +1,6 @@
+import { ReportsModule } from 'src/reports/reports.module';
+import { ReportsService } from 'src/reports/reports.service';
+
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -18,6 +21,7 @@ import { CompanyService } from './company.service';
     forwardRef(() => WarehouseModule),
     PartnerModule,
     OrderModule,
+    ReportsModule,
   ],
   providers: [CompanyService, CompanyResolver],
   exports: [CompanyService],

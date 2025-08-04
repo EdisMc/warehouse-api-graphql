@@ -1,5 +1,13 @@
+import { CurrentCompany } from 'src/decorators/current-company.decorator';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { Roles } from 'src/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { ReportsService } from 'src/reports/reports.service';
+import { HighestStockProductType } from 'src/reports/reports.types';
 import { BaseResolver } from 'src/shared/resolvers/base.resolver';
 
+import { Inject, Res, UseGuards } from '@nestjs/common';
 import {
 	Args,
 	Mutation,
@@ -39,45 +47,52 @@ export class CompanyResolver extends BaseResolver<
     private readonly warehouseService: WarehouseService,
     private readonly partnerService: PartnerService,
     private readonly orderService: OrderService,
+    @Inject(ReportsService)
+    private readonly reportsService: ReportsService,
   ) {
     super(service);
   }
 
   @Query(() => [CompanyType])
-  async companies() {
-    return super.findAll();
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR', 'VIEWER')
+  async companies(@CurrentCompany() companyId: string) {
+    const company = await this.service.findById(companyId);
+    return company ? [company] : [];
   }
 
   @Query(() => CompanyType, { nullable: true })
-  async company(@Args('id') id: string) {
-    return super.findOne(id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR', 'VIEWER')
+  async myCompany(@CurrentCompany() companyId: string) {
+    return this.service.findById(companyId);
   }
 
   @Mutation(() => CompanyType)
-  async createCompany(
-    @Args('input', { type: () => CreateCompanyInput })
-    input: CreateCompanyInput,
-  ) {
-    return super.create(input);
-  }
-
-  @Mutation(() => CompanyType)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
   async updateCompany(
-    @Args('id') id: string,
     @Args('input', { type: () => UpdateCompanyInput })
     input: UpdateCompanyInput,
+    @CurrentCompany() companyId: string,
   ) {
-    return super.update(id, input);
+    return this.service.update(companyId, input);
   }
 
   @Mutation(() => Boolean)
-  async softDeleteCompany(@Args('id') id: string) {
-    return super.softDelete(id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
+  async softDeleteCompany(@CurrentCompany() companyId: string) {
+    await this.service.softDelete(companyId);
+    return true;
   }
 
   @Mutation(() => Boolean)
-  async deleteCompany(@Args('id') id: string) {
-    return super.delete(id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
+  async deleteCompany(@CurrentCompany() companyId: string) {
+    await this.service.delete(companyId);
+    return true;
   }
 
   @ResolveField(() => [UserType])
@@ -103,5 +118,10 @@ export class CompanyResolver extends BaseResolver<
   @ResolveField(() => [OrderType])
   async orders(@Parent() company: CompanyType) {
     return this.orderService.findAllByCompany(company.id);
+  }
+
+  @ResolveField(() => [HighestStockProductType])
+  async highestStockProductPerWarehouse(@CurrentCompany() companyId: string) {
+    return this.reportsService.getHighestStockProductPerWarehouse(companyId);
   }
 }

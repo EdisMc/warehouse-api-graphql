@@ -41,6 +41,10 @@ export class OrderItemService extends BaseService<OrderItem> {
     });
   }
 
+  async findAllByOrderIds(orderIds: string[]): Promise<OrderItem[]> {
+    return this.repo.find({ where: { orderId: In(orderIds) } });
+  }
+
   async findAllByOrder(orderId: string) {
     return this.repo.find({
       where: { orderId },

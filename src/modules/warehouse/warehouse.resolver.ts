@@ -1,5 +1,10 @@
+import { CurrentCompany } from 'src/decorators/current-company.decorator';
+import { Roles } from 'src/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
 import { BaseResolver } from 'src/shared/resolvers/base.resolver';
 
+import { UseGuards } from '@nestjs/common';
 import {
 	Args,
 	Mutation,
@@ -38,40 +43,69 @@ export class WarehouseResolver extends BaseResolver<
   }
 
   @Query(() => [WarehouseType])
-  async warehouses() {
-    return super.findAll();
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR', 'VIEWER')
+  async warehouses(@CurrentCompany() companyId: string) {
+    return this.service.findAllByCompany(companyId);
   }
 
   @Query(() => WarehouseType, { nullable: true })
-  async warehouse(@Args('id') id: string) {
-    return super.findOne(id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR', 'VIEWER')
+  async warehouse(@Args('id') id: string, @CurrentCompany() companyId: string) {
+    const warehouse = await super.findOne(id);
+    return warehouse && warehouse.companyId === companyId ? warehouse : null;
   }
 
   @Mutation(() => WarehouseType)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR')
   async createWarehouse(
     @Args('input', { type: () => CreateWarehouseInput })
     input: CreateWarehouseInput,
+    @CurrentCompany() companyId: string,
   ) {
-    return super.create(input);
+    return super.create({ ...input, companyId });
   }
 
   @Mutation(() => WarehouseType)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'OPERATOR')
   async updateWarehouse(
     @Args('id') id: string,
     @Args('input', { type: () => UpdateWarehouseInput })
     input: UpdateWarehouseInput,
+    @CurrentCompany() companyId: string,
   ) {
-    return super.update(id, input);
+    return super.update(id, { ...input, companyId });
   }
 
   @Mutation(() => Boolean)
-  async softDeleteWarehouse(@Args('id') id: string) {
-    return super.softDelete(id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
+  async softDeleteWarehouse(
+    @Args('id') id: string,
+    @CurrentCompany() companyId: string,
+  ) {
+    const warehouse = await super.findOne(id);
+    if (!warehouse || warehouse.companyId !== companyId)
+      throw new Error('Forbidden');
+    await super.softDelete(id);
+    return true;
   }
 
   @Mutation(() => Boolean)
-  async deleteWarehouse(@Args('id') id: string) {
-    return super.delete(id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER')
+  async deleteWarehouse(
+    @Args('id') id: string,
+    @CurrentCompany() companyId: string,
+  ) {
+    const warehouse = await super.findOne(id);
+    if (!warehouse || warehouse.companyId !== companyId)
+      throw new Error('Forbidden');
+    await super.delete(id);
+    return true;
   }
 
   @ResolveField(() => CompanyType, { nullable: true })
